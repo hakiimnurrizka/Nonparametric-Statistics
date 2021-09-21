@@ -1,9 +1,9 @@
 ###Binomial Test###
 ##exact method using stats library
 library(stats)
-##we need a vector showing number of (success, failure) or number of success and total trial
+#we need a vector showing number of (success, failure) or number of success and total trial
 databin = c(10233, 69777)
-##we are to test whether the success rate is p = 0.125 
+#we are to test whether the success rate is p = 0.125 
 binom.test(databin, p = 0.125)
 binom.test(10233, 10233+69777, 0.125) #two-tailed
 binom.test(databin, p = 0.125, alternative = "greater") #right-tailed
@@ -78,8 +78,8 @@ conf_int = function(y,n,alpha){
 conf_int(4, 20, .05)
 
 
-###Quantile test###
-##from : https://people.stat.sc.edu/hitchcock/Rexamples518section3_2.txt
+##Quantile test
+#from : https://people.stat.sc.edu/hitchcock/Rexamples518section3_2.txt#
 quantile.test<-function(x,xstar=0,quantile=.5,alternative="two.sided"){
   n<-length(x)
   p<-quantile
@@ -94,7 +94,41 @@ quantile.test<-function(x,xstar=0,quantile=.5,alternative="two.sided"){
   list(xstar=xstar,alternative=alternative,T1=T1,T2=T2,p.value=p.value)
   }
 
+#an example case for this test is, say there are students with their test score recorded. 
+#then we would like to inspect whether the upper quartile of the scores is 193
+testscores <- c(189,233,195,160,212,176,231,185,199,213,202,193,174,166,248)
 
+quantile.test(testscores,xstar=193,quantile=0.75,alternative="two.sided")
+#thus it can be concluded that the upper quartile of the scores is not 193 
+
+#another example is for testing one-tailed quantile.
+#suppose we have prices for houses within a neighborhood, then we want to test whether the median
+#of the house price is at least 179 
+prices <- c(120, 500, 64, 104, 172, 275, 336, 55, 535, 251, 214, 1250, 402, 27, 109, 17, 334, 205)
+
+quantile.test(prices,xstar=179, quantile=0.5, alternative="quantile.less")
+sort(prices)
+
+##confidence interval for quantile
+#to make the (1-alpha) confidence interval for certain quantile
+quantile.interval<-function(x,quantile=.5,conf.level=.95){
+  n<-length(x)
+  p<-quantile
+  alpha<-1-conf.level
+  rmin1<-qbinom(alpha/2,n,p)-1
+  r<-rmin1+1
+  alpha1<-pbinom(r-1,n,p)
+  smin1<-qbinom(1-alpha/2,n,p)
+  s<-smin1+1
+  alpha2<-1-pbinom(s-1,n,p)
+  clo<-sort(x)[r]
+  chi<-sort(x)[s]
+  conf.level<-1-alpha1-alpha2
+  list(quantile=quantile,conf.level=conf.level,r=r,s=s,interval=c(clo,chi))}
+#example with the house prices : 95% CI for median
+quantile.interval(prices, .5, .95)
+#example with the house prices : 90% CI for .7 quantile
+quantile.interval(prices, .7, .9)
 
 
 library(nortest)
