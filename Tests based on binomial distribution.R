@@ -108,7 +108,6 @@ prices <- c(120, 500, 64, 104, 172, 275, 336, 55, 535, 251, 214, 1250, 402, 27, 
 
 quantile.test(prices,xstar=179, quantile=0.5, alternative="quantile.less")
 sort(prices)
-
 ##confidence interval for quantile
 #to make the (1-alpha) confidence interval for certain quantile
 quantile.interval<-function(x,quantile=.5,conf.level=.95){
@@ -149,17 +148,32 @@ mice2 %>% group_by(group) %>% summarise(n = length(weight),
                                         median_weight = median(weight),
                                         iqr = IQR(weight))
 #based on the above summary, it can be seen the big difference in mean and median values for the 
-#weight of specimens before adn after treatment
+#weight of specimens before and after treatment
 #now we use the statistics test for sign test
 sign_test(mice2, weight ~ group, alternative = "greater")
 #based on the result above, it can be concluded that the values of weight from the specimens whom
 #received treatment tend to be higher than the weight of the specimens whom has not received the treatment
-
+binom.test(8,9, alternative = "greater")
+binom.test(82,82)
+binom.test(9,10, alternative = "greater")
 ##sign test exercise from chapter 3.4 W. J. Conover - Practical Nonparametric Statistics, 3rd (1999, Wiley)
 # 2
-binom.test(22,28, alternative = "greater") #statistics test shows a significant evidence of
+binom.test(22,26, alternative = "greater") #statistics test shows a significant evidence of
 #reaction time after lunch being longer than reaction time before lunch
 # 3
-binom.test(23,100) #evidently there is significant difference of durability affected by two of the additives
+binom.test(77,100) #evidently there is significant difference of durability affected by two of the additives
 # 4
-binom.test(12, 22) #there is not enough evidence of significant difference in preferences
+binom.test(7, 19) #there is not enough evidence of significant difference in preferences
+
+##mcnemar test(test of change significance)
+#variation from sign test in which instead of ordinal, we have categorical variables
+#another way to see it is suppose we have bivariate variable (joint variables) independent with each other
+#then for each of these individual variables has exactly 2 categories (lets call it 0 and 1)
+#illustration : we have two surveys conducted asking whether choosing between 2 candidates of the election. 
+#the first survey conducted just before the candidates debate took place and the second one was held after the debate.
+vote = matrix(c(144, 29, 31, 431), 2,2, byrow = T)
+vote
+#after obtaining the data, we would like to conduct a test whether the debate has significant effect to
+#people's vote or not : 
+mcnemar.test(vote)
+binom.test(29,60)
