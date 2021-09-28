@@ -1,9 +1,13 @@
 ###Tests based on Binomial distribution###
 ##exact binomial test method using stats library
 library(stats)
+library(tidyverse)
+library(rstatix)
+library(ggpubr)
+library(datarium)
 #we need a vector showing number of (success, failure) or number of success and total trial
 databin = c(10233, 69777)
-#we are to test whether the success rate is p = 0.125 
+#we are to test whether the success rate is p* = 0.125 
 binom.test(databin, p = 0.125)
 binom.test(10233, 10233+69777, 0.125) #two-tailed
 binom.test(databin, p = 0.125, alternative = "greater") #right-tailed
@@ -14,8 +18,8 @@ binom.test(databin, p = 0.125, alternative = "greater") #right-tailed
 #is it safe to conclude that the new method is effective on reducing the side effects from the operation?
 #this problem can be viewed as a binomial test problem which alternative hypothesis is left-tailed 
 #and probability of .5
-binom.test(3, 19, 0.5, alternative = "less") #it can be concluded that the new method is effective 
-#in reducing the operation's side effects
+binom.test(16, 19, 0.5, alternative = "greater") #it can be concluded that the new method is effective 
+#in reducing the operation's side effects ; H1 : side effects experienced by < .5 from total patients
 binom.test
 
 ##using approximation with normal distribution
@@ -34,7 +38,7 @@ quantil = function(n,p,q){
   quant = n * p + qnorm(q)*sqrt(n*p*(1-p))
   structure(quant)
 }
-quantil(19.6,0.5,0.05)
+quantil(19,0.5,0.05)
 
 #suppose we want to test whether a certain type of genotype on a plant has the chance of .75 to occurs
 #the data consist of genotype "a" appeared on 243 plants while the "b" genotype appeared on 682 plants.
@@ -42,7 +46,7 @@ quantil(19.6,0.5,0.05)
 binom.test(682, 682+243, .75)
 quantil(925, .75, .025)#lower quantile
 quantil(925, .75, .975)#upper quantile
-#using the above quantile, the critical region is 667.94 =< T =<  719.56
+#using the above quantile, the critical region is 667.94 > T and T >  719.56
 #pvalue from normal distribution approximation can be derived as
 pnorm((682-.75*925+.5)/sqrt(925*.75*.25))
 
@@ -133,10 +137,6 @@ quantile.interval(prices, .7, .9)
 #a test to see whether one variable tend to have higher values than the other variable.
 #in a sense sign test is simply another kind of binomial test(p*=.5). the importance to be remembered is
 #this test, most of the time, is used for paired data. thus, it is also similar to t-test for paired samples
-library(tidyverse)
-library(rstatix)
-library(ggpubr)
-library(datarium)
 data(mice2)
 mice2 #from datarium library
 #transform data by gathering the value of "before" and "after" in a column
@@ -150,6 +150,7 @@ mice2 %>% group_by(group) %>% summarise(n = length(weight),
 #based on the above summary, it can be seen the big difference in mean and median values for the 
 #weight of specimens before and after treatment
 #now we use the statistics test for sign test
+mice2
 sign_test(mice2, weight ~ group, alternative = "greater")
 #based on the result above, it can be concluded that the values of weight from the specimens whom
 #received treatment tend to be higher than the weight of the specimens whom has not received the treatment
