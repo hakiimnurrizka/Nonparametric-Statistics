@@ -158,6 +158,7 @@ abs_diff_means_obs = abs(diff_means_obs)
 exceed_count = length(abs_simulated_means[abs_simulated_means >= 
                                              abs_diff_means_obs])
 p_val = exceed_count / 1000
+p_val
 #note that the decision in randomization is the same as the previous t test
 
 #real life illustration : ecologist's interest in understanding the factors that shape the organization
