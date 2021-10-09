@@ -133,6 +133,13 @@ quantile.interval(prices, .5, .95)
 #example with the house prices : 90% CI for .7 quantile
 quantile.interval(prices, .7, .9)
 
+###cox-stuart
+#testing randomness/trend of data
+library(randtests)
+set.seed(100)
+crab_farm = c(rbinom(20,2000, 0.7))#suppose that it is data of crab harvest within 20 months of observation on a certain crab farm
+cox.stuart.test(crab_farm)#turns out there is no significant difference in the crab harvest within 20 months
+
 ##sign test
 #a test to see whether one variable tend to have higher values than the other variable.
 #in a sense sign test is simply another kind of binomial test(p*=.5). the importance to be remembered is
