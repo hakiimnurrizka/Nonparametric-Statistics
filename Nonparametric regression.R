@@ -3,16 +3,29 @@
 #nonparametric modelling can be seen as an extension to that of parametric modelling
 library(tidyverse)
 library(caret)
+library(ggplot2)
 theme_set(theme_classic())
 library(loon.data)
 #We'll use bone mineral density data from loon.data package
 data("bone")
+str(bone)
+head(bone, 20)
+#applicating linear regression on the data
+bone.try = lm(rspnbmd~age+ sex+ ethnic, data = bone)
+summary(bone.try)
+plot(bone.try, 2)
+plot(bone.try, 3)
+
+bone.ano = aov(rspnbmd~sex, data=bone)
+bone.ano = aov(rspnbmd~ethnic*sex, data = bone)
+summary(bone.ano)
 #plot data
 ggplot(bone, aes(age, rspnbmd), xl ) + geom_point() +
   ylab("Relative spinal bone mineral density")+ xlab ("age")
 #model the data with simple linear regression
 lm.bone = lm(rspnbmd~age, data = bone)
 summary(lm.bone)
+plot(lm.bone, 3)
 #Plot the regression line
 ggplot(bone, aes(age, rspnbmd), xl ) + geom_point() +
   stat_smooth(method = lm, formula = y ~ poly(x, 1, raw = TRUE))+
@@ -34,18 +47,25 @@ training.samples = bone$rspnbmd %>%
 train.data  = bone[training.samples, ]
 test.data = bone[-training.samples, ]
 #chosen polynomial regression model is up to 4th degree
-lm.bone2 = lm(rspnbmd ~ poly(age, 4), data = train.data)
+lm.bone2 = lm(rspnbmd ~ age + I(age^2) + I(age^3) + I(age^4), data = train.data)
 summary(lm.bone2)
 #use the model for prediction
 predict.bone = lm.bone2 %>% predict(test.data)
 #performance of the model
 data.frame(RMSE = RMSE(predict.bone, test.data$rspnbmd),
            R2 = R2(predict.bone, test.data$rspnbmd))
-
-ggplot(bone, aes(age, rspnbmd), xl ) + geom_point() +
-  stat_smooth(method = lm, formula = y ~ poly(x, 4, raw = TRUE))+
+#plot the polynomial regression lines to compare the fit
+ggplot(bone, aes(x = age, y = rspnbmd), xl ) + geom_point() +
+  stat_smooth(method = lm, formula = y ~ x + I(x^2), col = "red")+
   ylab("Relative spinal bone mineral density")+ xlab ("age")
-#the result looks better than the linear, also from the graph we might even want to
+ggplot(bone, aes(x = age, y = rspnbmd), xl ) + geom_point() +
+  stat_smooth(method = lm, formula = y ~ x + I(x^2) + I(x^3), col = "green")+
+  ylab("Relative spinal bone mineral density")+ xlab ("age")
+ggplot(bone, aes(x = age, y = rspnbmd), xl ) + geom_point() +
+  stat_smooth(method = lm, formula = y ~ x + I(x^2) + I(x^3) + I(x^4))+
+  ylab("Relative spinal bone mineral density")+ xlab ("age")
+#degree 4th looks to be the most fitting line for the data.
+#and obviously it looks better than the linear one, also from the graph we might even want to
 #accept that the model sufficiently represent tha data. however
 plot(lm.bone2$fitted.values, lm.bone2$residuals,
      ylab = "Residuals", xlab = "Fitted values")
@@ -152,9 +172,17 @@ ksmooth.gcv <- function(x, y){
 ksmooth.gcv(age, rspnbmd) #general cross-validation
 with(bone, {
   plot(age, rspnbmd)
-  lines(ksmooth(age, rspnbmd, "normal", bandwidth = 0.997), col = 2, lwd = 3)
   lines(ksmooth(age, rspnbmd, "normal", bandwidth = 0.9212), col = 4, lwd = 3)
-  legend("topright", legend=c("0.997","0.9212"),
-         col=c("red", "blue"), cex = 0.9, lty = 1, lwd = 3, title = "Bandwidth")})
+  legend("topright", legend=c("0.9212"),
+         col=c("blue"), cex = 0.9, lty = 1, lwd = 3, title = "Bandwidth")})
 #thus, it can be deducted that optimal bandwidth value for gaussian-kernel smoothing regression
 #on bone mineral density data is around 0.9-1
+with(bone, {
+  plot(ksmooth(age, rspnbmd, "normal", bandwidth = 0.95), xlab = "Age", ylab = "Relative spinal bone mineral density")
+  legend("topright", legend=c("0.95"),cex = 0.9, title = "Bandwidth")})
+library(np)
+bone.kern = npreg(rspnbmd~age, regtype = "lc", bwmethod = "cv.aic")
+plot(bone.kern, plot.error.methods = "bootstrap")
+summary(bone.kern)
+
+plot(ksmooth(age, rspnbmd, "normal", bandwidth = 0.95))
