@@ -47,7 +47,7 @@ training.samples = bone$rspnbmd %>%
 train.data  = bone[training.samples, ]
 test.data = bone[-training.samples, ]
 #chosen polynomial regression model is up to 4th degree
-lm.bone2 = lm(rspnbmd ~ age + I(age^2) + I(age^3) + I(age^4), data = train.data)
+lm.bone2 = lm(rspnbmd ~ age + I(age^2) + I(age^3) + I(age^4), data = bone)
 summary(lm.bone2)
 #use the model for prediction
 predict.bone = lm.bone2 %>% predict(test.data)
@@ -169,7 +169,8 @@ ksmooth.gcv <- function(x, y){
   fit <- xden %*% y
   list(x = x, y = fit, df = df, h = oh)
 }
-ksmooth.gcv(age, rspnbmd) #general cross-validation
+bone.kern = with(bone, ksmooth.gcv(age, rspnbmd)) 
+bone.kern$h#general cross-validation
 with(bone, {
   plot(age, rspnbmd)
   lines(ksmooth(age, rspnbmd, "normal", bandwidth = 0.9212), col = 4, lwd = 3)
@@ -178,11 +179,42 @@ with(bone, {
 #thus, it can be deducted that optimal bandwidth value for gaussian-kernel smoothing regression
 #on bone mineral density data is around 0.9-1
 with(bone, {
-  plot(ksmooth(age, rspnbmd, "normal", bandwidth = 0.95), xlab = "Age", ylab = "Relative spinal bone mineral density")
-  legend("topright", legend=c("0.95"),cex = 0.9, title = "Bandwidth")})
-library(np)
-bone.kern = npreg(rspnbmd~age, regtype = "lc", bwmethod = "cv.aic")
-plot(bone.kern, plot.error.methods = "bootstrap")
-summary(bone.kern)
+  plot(age, rspnbmd, ylab = "Relative spinal bone mineral density")
+  lines(bone.kern, lwd = 3, col = "blue")
+  legend("topright", legend=c("0.9212"),cex = 0.9, title = "Bandwidth")})
+plot(bone.kern$x, bone.kern$y)
 
-plot(ksmooth(age, rspnbmd, "normal", bandwidth = 0.95))
+#next, we'll apply spline smoothing. spline smoothing use the spline interpolation method
+#to estimate the functional relationship between predictor and goal.
+#similar to kernel smoothing, spline formula requires a coefficient to specify
+#closeness on making the neighbors. In spline its referred as span
+#here is the default for spline smoothing (ss) algorithm in npreg package. it uses cubic
+#spline
+bone.spline = with(bone, ss(age, rspnbmd))
+bone.spline
+summary(bone.spline)
+with(bone, {
+  plot(age, rspnbmd, ylab = "Relative spinal bone mineral density")
+  lines(bone.spline$x,bone.spline$y, lwd = 3, col = "red")
+})
+#changing some of the parameters on the function 
+bone.spline2 = with(bone, ss(age, rspnbmd, nknots = 8, m = 2, spar = 0.16))
+summary(bone.spline2)
+with(bone, {
+  plot(age, rspnbmd, ylab = "Relative spinal bone mineral density")
+  lines(bone.spline$x,bone.spline$y, lwd = 3, col = "red")
+  lines(bone.spline2$x,bone.spline2$y, lwd = 3, col = "green")
+})
+#smoothing regression line with 95% bayesian confidence interval
+plot(bone.spline, xlab = "age", ylab = "Relative spinal bone mineral density")
+#compare with kernel result
+plot(age, rspnbmd)
+ix = sort(age, index.return=T)$ix
+
+with(bone, {
+  plot(age, rspnbmd, ylab = "Relative spinal bone mineral density")
+  lines(age[ix], predict(lm.bone2)[ix], lwd = 3, col = "green")
+  lines(bone.kern, lwd = 3, col = "blue")
+  lines(bone.spline$x,bone.spline$y, lwd = 3, col = "red")
+  legend("topright", legend=c("Polynomial", "Kernel smoothing", "Spline smoothing")
+         ,cex = 0.9, lwd = c(3,3,3) , col = c("green", "blue","red"), title = "Type of line")})
