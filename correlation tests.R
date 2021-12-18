@@ -24,3 +24,12 @@ cor.test(stat.x, stat.y, method = "kendall", alternative = "greater")
 library(trend)
 defect = c(6.1, 7.5, 7.7, 5.9, 5.2, 6.1, 5.3, 4.5, 4.9, 4.6, 3.0, 4.0, 3.7)
 cor.test(1:length(defect), defect, method = "spearman")
+
+##Correlation table
+#Simplify to make a two-way table describing correlation between pair in a dataframe
+library(psycho)
+library(corrplot)
+data(affective)
+view(affective)
+c.psy = cor(affective[,c(2,5,6,7,8)])
+corrplot(c.psy, method = "number")
