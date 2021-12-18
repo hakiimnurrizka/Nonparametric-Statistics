@@ -218,3 +218,30 @@ with(bone, {
   lines(bone.spline$x,bone.spline$y, lwd = 3, col = "red")
   legend("topright", legend=c("Polynomial", "Kernel smoothing", "Spline smoothing")
          ,cex = 0.9, lwd = c(3,3,3) , col = c("green", "blue","red"), title = "Type of line")})
+
+##On a monotonic data##
+first_cases = read_excel("~/Nonparametric-Statistics/first-cases.xlsx")
+library(ggplot2)
+library(monreg)
+library(corrplot)
+fc_cor = cor(first_cases)
+corrplot(fc_cor, method = "number")
+ggplot(first_cases, aes(day, new)) + geom_point() 
+ggplot(first_cases, aes(day, total)) + geom_point() 
+#linear regression
+fc_lm = lm(new~day, data = first_cases)
+summary(fc_lm)
+plot(fc_lm, 1)
+#kernel
+with(first_cases, {
+  plot(day, new)
+  lines(ksmooth(day, new, "normal", bandwidth = 5), col = 2, lwd = 3)
+  lines(ksmooth(day, new, "normal", bandwidth = 10), col = 3, lwd = 3)
+  lines(ksmooth(day, new, "normal", bandwidth = 15), col = 4, lwd = 3)
+  legend("topright", legend=c("5", "10", "15"),
+         col=c("red", "green", "blue"), cex = 0.6, lty = 1, lwd = 3, title = "Bandwidth")})
+
+attach(first_cases)
+fc_mon = monreg(day, total, hd = .5, hr=.5)
+fc_mon.est = as.data.frame(cbind(fc_mon$t, fc_mon$estimation))
+ggplot(fc_mon.est, aes(V1, V2)) + geom_line() + xlab("day")+ ylab("estimation")
